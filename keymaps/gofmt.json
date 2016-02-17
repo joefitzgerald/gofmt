@@ -1,0 +1,7 @@
+{
+  "atom-workspace": {
+    "ctrl-alt-shift-g f": "gofmt:gofmt",
+    "ctrl-alt-shift-g i": "gofmt:goimports",
+    "ctrl-alt-shift-g r": "gofmt:goreturns"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "context-menu": {
+    "atom-text-editor": [
+      {
+        "label": "Run gofmt",
+        "command": "gofmt:gofmt"
+      },
+      {
+        "label": "Run goimports",
+        "command": "gofmt:goimports"
+      },
+      {
+        "label": "Run goreturns",
+        "command": "gofmt:goreturns"
+      }
+    ]
+  },
+  "menu": [
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "gofmt",
+          "submenu": [
+            {
+              "label": "Run gofmt",
+              "command": "gofmt:gofmt"
+            },
+            {
+              "label": "Run goimports",
+              "command": "gofmt:goimports"
+            },
+            {
+              "label": "Run goreturns",
+              "command": "gofmt:goreturns"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
