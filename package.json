@@ -67,19 +67,6 @@
         "gofmt"
       ],
       "order": 2
-    },
-    "formatArgs": {
-      "title": "Format Arguments",
-      "description": "`-w` will always be used; you can specify additional arguments for the format tool if desired",
-      "type": "array",
-      "default": [
-        "-w",
-        "-e"
-      ],
-      "items": {
-        "type": "string"
-      },
-      "order": 3
     }
   },
   "standard": {
