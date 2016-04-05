@@ -1,12 +1,24 @@
 'use babel'
 /* eslint-env jasmine */
 
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
+import temp from 'temp'
+
+let nl = os.EOL
+
 describe('formatter', () => {
   let mainModule = null
 
   beforeEach(() => {
+    temp.track()
+    atom.config.set('gofmt.formatOnSave', false)
+
     waitsForPromise(() => {
       return atom.packages.activatePackage('go-config').then(() => {
+        return atom.packages.activatePackage('language-go')
+      }).then(() => {
         return atom.packages.activatePackage('gofmt')
       }).then((pack) => {
         mainModule = pack.mainModule
@@ -14,7 +26,162 @@ describe('formatter', () => {
     })
 
     waitsFor(() => {
-      return mainModule.getGoconfig() !== false
+      return mainModule.goconfig !== false
+    })
+  })
+
+  describe('when a simple file is opened', () => {
+    let editor
+    let filePath
+    let saveSubscription
+    let actual
+
+    beforeEach(() => {
+      let directory = fs.realpathSync(temp.mkdirSync())
+      atom.project.setPaths([directory])
+      filePath = path.join(directory, 'main.go')
+      fs.writeFileSync(filePath, '')
+      waitsForPromise(() => {
+        return atom.workspace.open(filePath).then((e) => {
+          editor = e
+          saveSubscription = e.onDidSave(() => {
+            actual = e.getText()
+          })
+        })
+      })
+
+      waitsFor(() => {
+        return mainModule.getFormatter().formatterCache !== null
+      })
+    })
+
+    afterEach(() => {
+      if (saveSubscription) {
+        saveSubscription.dispose()
+      }
+    })
+
+    describe('when format on save is disabled and gofmt is the tool', () => {
+      beforeEach(() => {
+        atom.config.set('gofmt.formatOnSave', false)
+        atom.config.set('gofmt.formatTool', 'gofmt')
+      })
+
+      it('does not format the file on save', () => {
+        let text = 'package main' + nl + nl + 'func main()  {' + nl + '}' + nl
+        let expected = text
+        let formatted = 'package main' + nl + nl + 'func main() {' + nl + '}' + nl
+
+        runs(() => {
+          let buffer = editor.getBuffer()
+          buffer.setText(text)
+          buffer.save()
+        })
+
+        waitsFor(() => { return actual })
+
+        runs(() => {
+          expect(actual).toBe(expected)
+          expect(actual).not.toBe(formatted)
+        })
+      })
+
+      it('formats the file on command', () => {
+        let text = 'package main' + nl + nl + 'func main()  {' + nl + '}' + nl
+        let unformatted = text
+        let formatted = 'package main' + nl + nl + 'func main() {' + nl + '}' + nl
+
+        runs(() => {
+          let buffer = editor.getBuffer()
+          buffer.setText(text)
+          buffer.save()
+        })
+
+        waitsFor(() => { return actual })
+
+        runs(() => {
+          expect(actual).toBe(unformatted)
+          expect(actual).not.toBe(formatted)
+          let target = atom.views.getView(editor)
+          atom.commands.dispatch(target, 'golang:gofmt')
+        })
+
+        runs(() => {
+          expect(editor.getText()).toBe(formatted)
+        })
+      })
+    })
+
+    describe('when format on save is enabled and gofmt is the tool', () => {
+      beforeEach(() => {
+        atom.config.set('gofmt.formatOnSave', true)
+        atom.config.set('gofmt.formatTool', 'gofmt')
+      })
+
+      it('formats the file on save', () => {
+        let text = 'package main' + nl + nl + 'func main()  {' + nl + '}' + nl
+        let expected = 'package main' + nl + nl + 'func main() {' + nl + '}' + nl
+
+        runs(() => {
+          let buffer = editor.getBuffer()
+          buffer.setText(text)
+          buffer.save()
+        })
+
+        waitsFor(() => { return actual })
+
+        runs(() => {
+          expect(actual).toBe(expected)
+        })
+      })
+    })
+
+    describe('when format on save is enabled and goimports is the tool', () => {
+      beforeEach(() => {
+        atom.config.set('gofmt.formatOnSave', true)
+        atom.config.set('gofmt.formatTool', 'goimports')
+      })
+
+      it('formats the file on save', () => {
+        let text = 'package main' + nl + nl + 'func main()  {' + nl + '}' + nl
+        let expected = 'package main' + nl + nl + 'func main() {' + nl + '}' + nl
+
+        runs(() => {
+          let buffer = editor.getBuffer()
+          buffer.setText(text)
+          buffer.save()
+        })
+
+        waitsFor(() => { return actual })
+
+        runs(() => {
+          expect(actual).toBe(expected)
+        })
+      })
+    })
+
+    describe('when format on save is enabled and goreturns is the tool', () => {
+      beforeEach(() => {
+        atom.config.set('gofmt.formatOnSave', true)
+        atom.config.set('gofmt.formatTool', 'goreturns')
+      })
+
+      it('formats the file on save', () => {
+        let text = 'package main' + nl + nl + 'func main()  {' + nl + '}' + nl
+        let expected = 'package main' + nl + nl + 'func main() {' + nl + '}' + nl
+
+        runs(() => {
+          let buffer = editor.getBuffer()
+          buffer.setText(text)
+          buffer.save()
+        })
+
+        waitsFor(() => { return actual })
+
+        runs(() => {
+          expect(actual).toBe(expected)
+        })
+      })
     })
   })
 })
