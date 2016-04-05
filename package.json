@@ -45,7 +45,7 @@
     },
     "go-get": {
       "versions": {
-        "0.1.0": "consumeGoget"
+        "1.0.0": "consumeGoget"
       }
     }
   },

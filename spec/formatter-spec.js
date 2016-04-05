@@ -2,18 +2,19 @@
 /* eslint-env jasmine */
 
 import fs from 'fs'
-import os from 'os'
 import path from 'path'
 import temp from 'temp'
 
-let nl = os.EOL
+let nl = '\n'
 
 describe('formatter', () => {
   let mainModule = null
+  let formatter = null
 
   beforeEach(() => {
     temp.track()
     atom.config.set('gofmt.formatOnSave', false)
+    atom.config.set('editor.defaultLineEnding', 'LF')
 
     waitsForPromise(() => {
       return atom.packages.activatePackage('go-config').then(() => {
@@ -26,7 +27,16 @@ describe('formatter', () => {
     })
 
     waitsFor(() => {
-      return mainModule.goconfig !== false
+      return mainModule.goconfig
+    })
+
+    waitsFor(() => {
+      formatter = mainModule.getFormatter()
+      return formatter
+    })
+
+    waitsFor(() => {
+      return formatter.ready()
     })
   })
 
@@ -49,22 +59,25 @@ describe('formatter', () => {
           })
         })
       })
-
-      waitsFor(() => {
-        return mainModule.getFormatter().formatterCache !== null
-      })
     })
 
     afterEach(() => {
       if (saveSubscription) {
         saveSubscription.dispose()
       }
+
+      actual = undefined
     })
 
     describe('when format on save is disabled and gofmt is the tool', () => {
       beforeEach(() => {
         atom.config.set('gofmt.formatOnSave', false)
+        formatter.resetFormatterCache()
+        formatter.updateFormatterCache()
         atom.config.set('gofmt.formatTool', 'gofmt')
+        waitsFor(() => {
+          return formatter.ready()
+        })
       })
 
       it('does not format the file on save', () => {
@@ -97,7 +110,9 @@ describe('formatter', () => {
           buffer.save()
         })
 
-        waitsFor(() => { return actual })
+        waitsFor(() => {
+          return actual
+        })
 
         runs(() => {
           expect(actual).toBe(unformatted)
@@ -115,7 +130,12 @@ describe('formatter', () => {
     describe('when format on save is enabled and gofmt is the tool', () => {
       beforeEach(() => {
         atom.config.set('gofmt.formatOnSave', true)
+        formatter.resetFormatterCache()
+        formatter.updateFormatterCache()
         atom.config.set('gofmt.formatTool', 'gofmt')
+        waitsFor(() => {
+          return formatter.ready()
+        })
       })
 
       it('formats the file on save', () => {
@@ -128,7 +148,9 @@ describe('formatter', () => {
           buffer.save()
         })
 
-        waitsFor(() => { return actual })
+        waitsFor(() => {
+          return actual
+        })
 
         runs(() => {
           expect(actual).toBe(expected)
@@ -139,7 +161,12 @@ describe('formatter', () => {
     describe('when format on save is enabled and goimports is the tool', () => {
       beforeEach(() => {
         atom.config.set('gofmt.formatOnSave', true)
+        formatter.resetFormatterCache()
+        formatter.updateFormatterCache()
         atom.config.set('gofmt.formatTool', 'goimports')
+        waitsFor(() => {
+          return formatter.ready()
+        })
       })
 
       it('formats the file on save', () => {
@@ -152,7 +179,9 @@ describe('formatter', () => {
           buffer.save()
         })
 
-        waitsFor(() => { return actual })
+        waitsFor(() => {
+          return actual
+        })
 
         runs(() => {
           expect(actual).toBe(expected)
@@ -163,7 +192,12 @@ describe('formatter', () => {
     describe('when format on save is enabled and goreturns is the tool', () => {
       beforeEach(() => {
         atom.config.set('gofmt.formatOnSave', true)
+        formatter.resetFormatterCache()
+        formatter.updateFormatterCache()
         atom.config.set('gofmt.formatTool', 'goreturns')
+        waitsFor(() => {
+          return formatter.ready()
+        })
       })
 
       it('formats the file on save', () => {
@@ -176,7 +210,9 @@ describe('formatter', () => {
           buffer.save()
         })
 
-        waitsFor(() => { return actual })
+        waitsFor(() => {
+          return actual
+        })
 
         runs(() => {
           expect(actual).toBe(expected)
